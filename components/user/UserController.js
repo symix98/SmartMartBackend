@@ -1,26 +1,20 @@
-const db = require('../../db/models/index')
+const db = require("../../db/models/index");
 const User = db.users;
 const ClientUser = db.clientuser;
-const crypto = require('crypto');
-require('dotenv').config();
-const bcrypt = require('bcryptjs');
-const {
-  successResponse,
-  errorResponse,
-} = require('../../responseService');
-const jwt = require('jsonwebtoken');
+const crypto = require("crypto");
+require("dotenv").config();
+const bcrypt = require("bcryptjs");
+const { successResponse, errorResponse } = require("../../responseService");
+const jwt = require("jsonwebtoken");
 module.exports = {
-
   async getAllUsers(req, res, next) {
     try {
       const response = await User.findAll({
-        attributes: [
-          'username',
-        ],
+        attributes: ["username"],
       });
       res.status(200).send(response);
     } catch (error) {
-      errorResponse(error, 'Could not Perform Operation! ', 400);
+      errorResponse(error, "Could not Perform Operation! ", 400);
     }
   },
 
@@ -30,11 +24,11 @@ module.exports = {
       const response = await User.findOne({
         where: {
           username,
-        }
+        },
       });
       res.status(200).send(response);
     } catch (error) {
-      errorResponse(error, 'Could not Perform Operation! ', 400);
+      errorResponse(error, "Could not Perform Operation! ", 400);
     }
   },
 
@@ -49,20 +43,26 @@ module.exports = {
         },
       });
       if (response) {
-        const isMatchedPassword = await bcrypt.compare(password,response.password);
+        const isMatchedPassword = await bcrypt.compare(
+          password,
+          response.password
+        );
         if (isMatchedPassword) {
           const payload = {
             username: response.username,
-            level: response.level
+            level: response.level,
           };
           const options = {
-            expiresIn: '10h'
+            expiresIn: "10h",
           };
           const accessToken = jwt.sign(payload, secret_key, options);
-          successResponse(res, { level: response.level, username: response.username }, accessToken);
-         }
-         else {
-          errorResponse(res, 'Wrong Password', 401);
+          successResponse(
+            res,
+            { level: response.level, username: response.username },
+            accessToken
+          );
+        } else {
+          errorResponse(res, "Wrong Password", 401);
         }
       } else {
         const response = await ClientUser.findOne({
@@ -71,27 +71,28 @@ module.exports = {
           },
         });
         if (response) {
-          const isMatchedPassword = await bcrypt.compare(password,response.password);
+          const isMatchedPassword = await bcrypt.compare(
+            password,
+            response.password
+          );
           if (isMatchedPassword) {
             const payload = {
               username: response.username,
             };
             const options = {
-              expiresIn: '1m'
+              expiresIn: "1m",
             };
             const accessToken = jwt.sign(payload, secret_key, options);
             successResponse(res, { username: response.username }, accessToken);
           } else {
-            errorResponse(res, 'Wrong password! ', 401);
+            errorResponse(res, "Wrong password! ", 401);
           }
-        }
-        else {
-          errorResponse(res, 'Wrong Username! ', 401);
+        } else {
+          errorResponse(res, "Wrong Username! ", 401);
         }
       }
-    }
-    catch (error) {
-      errorResponse(error, 'Could not Perform Operation! ', 400);
+    } catch (error) {
+      errorResponse(error, "Could not Perform Operation! ", 400);
     }
   },
   async editUser(req, res, next) {
@@ -104,18 +105,17 @@ module.exports = {
         },
         {
           where: {
-            username
-          }
+            username,
+          },
         }
       );
       if (response) {
         successResponse(res, response, "User Logged In Successfully!");
-      }
-      else {
-        errorResponse(res, 'Could not Perform Operation! ', 400);
+      } else {
+        errorResponse(res, "Could not Perform Operation! ", 400);
       }
     } catch (error) {
-      errorResponse(error, 'Could not Perform Operation! ', 400);
+      errorResponse(error, "Could not Perform Operation! ", 400);
     }
   },
   async createNewUser(req, res, next) {
@@ -123,7 +123,7 @@ module.exports = {
       const { username } = req.body;
       const { password } = req.body;
       const { level } = req.body;
-      const hashedPassword = await bcrypt.hash(password,10);
+      const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.findOne({
         where: {
           username,
@@ -133,11 +133,10 @@ module.exports = {
         await User.create({ username, hashedPassword, level });
         successResponse(res, true, "User Inserted Successfully!");
       } else {
-        errorResponse(res, 'Could not Perform Operation! ', 400);
+        errorResponse(res, "Could not Perform Operation! ", 400);
       }
-    }
-    catch (error) {
-      errorResponse(error, 'Could not Perform Operation! ', 400);
+    } catch (error) {
+      errorResponse(error, "Could not Perform Operation! ", 400);
     }
   },
 };
